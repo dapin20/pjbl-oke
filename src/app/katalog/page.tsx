@@ -1,22 +1,23 @@
-"use client";
-
-import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import { products } from "@/data/products";
-import { Product } from "@/types/product";
 
-export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+interface KatalogPageProps {
+  searchParams: {
+    category?: string;
+  };
+}
+
+export default function KatalogPage({ searchParams }: KatalogPageProps) {
+  const category = searchParams.category || "all";
 
   const filteredProducts =
-    selectedCategory === "all"
+    category === "all"
       ? products
-      : products.filter((p) => p.category === selectedCategory);
+      : products.filter((product) => product.category === category);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
       <section className="bg-white py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
@@ -30,12 +31,11 @@ export default function Home() {
           </div>
 
           <div className="flex justify-end">
-            <CategoryFilter onCategoryChange={setSelectedCategory} />
+            <CategoryFilter defaultCategory={category} />
           </div>
         </div>
       </section>
 
-      {/* Products Grid */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
