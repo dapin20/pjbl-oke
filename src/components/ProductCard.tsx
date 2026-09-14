@@ -29,6 +29,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
+        <p className="text-gray-600 text-sm mb-3">Stok: {product.stock}</p>
         {product.description && (
           <p className="text-gray-600 text-sm mb-4">{product.description}</p>
         )}

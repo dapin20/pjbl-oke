@@ -3,7 +3,8 @@ export interface Product {
   name: string;
   price: number;
   image: string;
-  category: 'kripik' | 'kacang' | 'roti' | 'basreng';
+  category: 'manis' | 'asin' | 'pedas' | 'all';
+  stock: number;
   description?: string;
 }
 

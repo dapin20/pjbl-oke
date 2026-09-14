@@ -6,8 +6,8 @@ export const products: Product[] = [
     name: 'Roti Manis Sobek',
     price: 25000,
     image: '/images/roti-manis.jpg',
-    category: 'roti',
-    description: 'Roti manis lembut dengan tekstur yang empuk'
+    category: 'manis',
+    stock: 25,
   },
   // Tambahkan produk lainnya
 ];
