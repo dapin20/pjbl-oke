@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NotificationPreferences from "./NotificationPreferences";
+import {
+  defaultCustomerProfile,
+  getCustomerProfile,
+  saveCustomerProfile,
+  CustomerProfile,
+} from "@/data/customer";
 
 export default function ProfileForm() {
-  const [formData, setFormData] = useState({
-    fullName: "Budi Santoso",
-    email: "budi.santoso@email.com",
-    whatsapp: "0812-3456-7890",
-    birthDate: "1995-08-17",
-    gender: "male",
-  });
+  const [formData, setFormData] = useState<CustomerProfile>(
+    defaultCustomerProfile,
+  );
+
+  useEffect(() => {
+    setFormData(getCustomerProfile());
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -21,18 +27,12 @@ export default function ProfileForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    saveCustomerProfile(formData);
     alert("Perubahan berhasil disimpan!");
   };
 
   const handleCancel = () => {
-    setFormData({
-      fullName: "Budi Santoso",
-      email: "budi.santoso@email.com",
-      whatsapp: "0812-3456-7890",
-      birthDate: "1995-08-17",
-      gender: "male",
-    });
+    setFormData(getCustomerProfile());
   };
 
   return (

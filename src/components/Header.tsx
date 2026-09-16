@@ -3,13 +3,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShoppingCart, User, Search } from "lucide-react";
 import SearchBar from "./SearchBar";
+import { getCustomerProfile } from "@/data/customer";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileImage, setProfileImage] = useState("");
   const pathname = usePathname();
+
+  useEffect(() => {
+    const syncAuthentication = () => {
+      const authenticated =
+        window.localStorage.getItem("klethisan-authenticated") === "true";
+      setIsAuthenticated(authenticated);
+      setProfileImage(authenticated ? getCustomerProfile().profileImage : "");
+    };
+
+    syncAuthentication();
+    window.addEventListener("klethisan-auth-change", syncAuthentication);
+
+    return () =>
+      window.removeEventListener("klethisan-auth-change", syncAuthentication);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/katalog") {
@@ -85,12 +103,21 @@ export default function Header() {
               </span>
             </button>
             <Link
-              href="/profil"
-              className="p-2 hover:bg-gray-100 rounded-full transition inline-flex"
-              aria-label="Profil pengguna">
-              <User className="w-6 h-6 text-gray-700" />
+              href={isAuthenticated ? "/profil" : "/masuk"}
+              aria-label={isAuthenticated ? "Buka profil" : "Masuk ke akun"}
+              className="p-1 hover:bg-gray-100 rounded-full transition">
+              {isAuthenticated && profileImage ? (
+                <Image
+                  src={profileImage}
+                  alt="Foto profil pelanggan"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-red-100"
+                />
+              ) : (
+                <User className="w-6 h-6 text-gray-700 m-1" />
+              )}
             </Link>
-
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2"

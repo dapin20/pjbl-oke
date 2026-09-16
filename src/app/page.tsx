@@ -4,7 +4,6 @@ import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import { products } from "@/data/products";
-import { Product } from "@/types/product";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("all");

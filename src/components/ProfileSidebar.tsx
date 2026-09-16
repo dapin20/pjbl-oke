@@ -1,17 +1,37 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  defaultCustomerProfile,
+  getCustomerProfile,
+  saveCustomerProfile,
+  CustomerProfile,
+} from "@/data/customer";
 
 export default function ProfileSidebar() {
-  const [profileImage, setProfileImage] = useState("/images/profile.jpg");
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profile, setProfile] = useState<CustomerProfile>(
+    defaultCustomerProfile,
+  );
+
+  useEffect(() => {
+    setProfile(getCustomerProfile());
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileImage(reader.result as string);
+        const updatedProfile = {
+          ...profile,
+          profileImage: reader.result as string,
+        };
+        setProfile(updatedProfile);
+        saveCustomerProfile(updatedProfile);
       };
       reader.readAsDataURL(file);
     }
@@ -24,7 +44,7 @@ export default function ProfileSidebar() {
         <div className="relative mb-4">
           <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-red-50">
             <Image
-              src={profileImage}
+              src={profile.profileImage}
               alt="Profile"
               width={128}
               height={128}
@@ -51,6 +71,7 @@ export default function ProfileSidebar() {
               />
             </svg>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageChange}
@@ -59,8 +80,12 @@ export default function ProfileSidebar() {
           </label>
         </div>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Budi Santoso</h2>
-        <p className="text-gray-600 text-sm mb-3">budi.santoso@email.com</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">
+          {profile.fullName}
+        </h2>
+        <p className="text-gray-600 text-sm mb-3">
+          {profile.email || profile.whatsapp || "Lengkapi profil pelanggan"}
+        </p>
 
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-900 rounded-full text-xs font-medium border border-red-100">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -75,7 +100,10 @@ export default function ProfileSidebar() {
       </div>
 
       {/* Change Photo Button */}
-      <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium mb-3">
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium mb-3">
         <svg
           className="w-4 h-4"
           fill="none"
@@ -101,7 +129,14 @@ export default function ProfileSidebar() {
       <div className="border-t border-gray-100 my-4"></div>
 
       {/* Logout Button */}
-      <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-900 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100">
+      <button
+        type="button"
+        onClick={() => {
+          window.localStorage.removeItem("klethisan-authenticated");
+          window.dispatchEvent(new Event("klethisan-auth-change"));
+          router.push("/");
+        }}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-900 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100">
         <svg
           className="w-4 h-4"
           fill="none"

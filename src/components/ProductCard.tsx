@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { Product } from "@/types/product";
 
@@ -17,7 +18,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
+    <Link
+      href={`/produk/${product.slug}`}
+      className="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
       <div className="relative h-64 overflow-hidden bg-gray-100">
         <Image
           src={product.image}
@@ -28,18 +31,14 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
       </div>
       <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
-        <p className="text-gray-600 text-sm mb-3">Stok: {product.stock}</p>
-        {product.description && (
-          <p className="text-gray-600 text-sm mb-4">{product.description}</p>
-        )}
+        <h3 className="text-xl font-bold text-gray-900 mb-6">{product.name}</h3>
         <p className="text-red-900 font-bold text-lg mb-4">
           {formatPrice(product.price)}
         </p>
-        <button className="w-full bg-red-900 text-white py-3 rounded-lg font-semibold hover:bg-red-800 transition-colors duration-300 shadow-md hover:shadow-lg">
+        <span className="block w-full bg-red-900 text-white py-3 rounded-lg font-semibold hover:bg-red-800 transition-colors duration-300 shadow-md hover:shadow-lg text-center">
           Pre-Order
-        </button>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
