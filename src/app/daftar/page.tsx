@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { defaultCustomerProfile, saveCustomerProfile } from "@/data/customer";
+import { useAuth } from "@/components/AuthProvider";
 import {
   User,
   AtSign,
@@ -17,6 +17,7 @@ import {
 
 export default function DaftarPage() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -26,38 +27,54 @@ export default function DaftarPage() {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (!agreed) {
-      alert("Anda harus menyetujui Syarat & Ketentuan");
+      setError("Anda harus menyetujui Syarat & Ketentuan.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Kata sandi tidak cocok");
+      setError("Kata sandi tidak cocok.");
       return;
     }
 
     if (formData.password.length < 8) {
-      alert("Kata sandi minimal 8 karakter");
+      setError("Kata sandi minimal 8 karakter.");
       return;
     }
 
-    saveCustomerProfile({
-      ...defaultCustomerProfile,
-      fullName: formData.fullName,
-      email: formData.emailOrWa.includes("@") ? formData.emailOrWa : "",
-      whatsapp: formData.emailOrWa.includes("@") ? "" : formData.emailOrWa,
-    });
-    window.localStorage.setItem("klethisan-authenticated", "true");
-    window.dispatchEvent(new Event("klethisan-auth-change"));
-    router.push("/profil");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      await refresh();
+      router.push("/");
+      router.refresh();
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Gagal membuat akun.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -106,6 +123,11 @@ export default function DaftarPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           {/* Full Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -233,8 +255,9 @@ export default function DaftarPage() {
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isSubmitting}
             className="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-red-900/20 mt-2">
-            Daftar Sekarang
+            {isSubmitting ? "Memproses..." : "Daftar Sekarang"}
             <ArrowRight size={18} />
           </button>
         </form>

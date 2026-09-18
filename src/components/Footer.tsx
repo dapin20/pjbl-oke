@@ -12,17 +12,9 @@ export default function Footer() {
             <p className="text-gray-300 mb-4">
               Camilan Favorit, Selalu Fresh & Terjangkau
             </p>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-gray-300">
-                <MapPin className="w-5 h-5" />
-                <span className="text-sm">
-                  Kec. Kedungkandang, Kota Malang, Jawa Timur
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Phone className="w-5 h-5" />
-                <span className="text-sm">0857-3943-4388</span>
-              </div>
+            <div className="flex items-center space-x-2 text-gray-300">
+              <Phone className="w-5 h-5" />
+              <span className="text-sm">0857-3943-4388</span>
             </div>
           </div>
 
@@ -100,13 +92,6 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4">Perusahaan</h4>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/tentang"
-                  className="text-gray-300 hover:text-white transition">
-                  Tentang Kami
-                </Link>
-              </li>
               <li>
                 <Link
                   href="/kontak"

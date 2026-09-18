@@ -3,31 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ShoppingCart, User, Search } from "lucide-react";
+import { useState } from "react";
 import SearchBar from "./SearchBar";
-import { getCustomerProfile } from "@/data/customer";
+import { useAuth } from "./AuthProvider";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [profileImage, setProfileImage] = useState("");
+  const { user } = useAuth();
   const pathname = usePathname();
-
-  useEffect(() => {
-    const syncAuthentication = () => {
-      const authenticated =
-        window.localStorage.getItem("klethisan-authenticated") === "true";
-      setIsAuthenticated(authenticated);
-      setProfileImage(authenticated ? getCustomerProfile().profileImage : "");
-    };
-
-    syncAuthentication();
-    window.addEventListener("klethisan-auth-change", syncAuthentication);
-
-    return () =>
-      window.removeEventListener("klethisan-auth-change", syncAuthentication);
-  }, []);
 
   const isActive = (href: string) => {
     if (href === "/katalog") {
@@ -64,7 +47,7 @@ export default function Header() {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-5">
             <Link
               href="/katalog"
               className={
@@ -75,7 +58,7 @@ export default function Header() {
               Katalog
             </Link>
             <Link
-              href="/pesanan"
+              href={user ? "/pesanan" : "/masuk"}
               className={
                 isActive("/pesanan")
                   ? "text-red-900 font-semibold hover:text-red-700 transition"
@@ -83,39 +66,33 @@ export default function Header() {
               }>
               Pesanan Saya
             </Link>
-            <Link
-              href="/tentang"
-              className={
-                isActive("/tentang")
-                  ? "text-red-900 font-semibold hover:text-red-700 transition"
-                  : "text-gray-700 hover:text-red-900 transition"
-              }>
-              Tentang Kami
-            </Link>
           </nav>
 
           {/* Icons */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition relative">
-              <ShoppingCart className="w-6 h-6 text-gray-700" />
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                0
-              </span>
-            </button>
+            {/* Profil / Masuk */}
             <Link
-              href={isAuthenticated ? "/profil" : "/masuk"}
-              aria-label={isAuthenticated ? "Buka profil" : "Masuk ke akun"}
+              href={user ? "/profil" : "/masuk"}
+              aria-label={user ? "Buka profil" : "Masuk ke akun"}
+              title={user ? `Halo, ${user.fullName}` : "Masuk"}
               className="p-1 hover:bg-gray-100 rounded-full transition">
-              {isAuthenticated && profileImage ? (
+              {user && user.imageUrl ? (
                 <Image
-                  src={profileImage}
-                  alt="Foto profil pelanggan"
+                  src={user.imageUrl}
+                  alt="Foto profil"
                   width={32}
                   height={32}
+                  unoptimized={user.imageUrl.startsWith("/uploads/")}
                   className="w-8 h-8 rounded-full object-cover border-2 border-red-100"
                 />
               ) : (
-                <User className="w-6 h-6 text-gray-700 m-1" />
+                <Image
+                  src="/user-circle.svg"
+                  alt="Masuk ke akun"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
               )}
             </Link>
             {/* Mobile menu button */}
@@ -135,7 +112,7 @@ export default function Header() {
             <div className="mb-4">
               <SearchBar />
             </div>
-            <nav className="flex flex-col space-y-4">
+            <nav className="flex flex-col space-y-3">
               <Link
                 href="/katalog"
                 className={
@@ -146,7 +123,7 @@ export default function Header() {
                 Katalog
               </Link>
               <Link
-                href="/pesanan"
+                href={user ? "/pesanan" : "/masuk"}
                 className={
                   isActive("/pesanan")
                     ? "text-red-900 font-semibold"
@@ -155,13 +132,13 @@ export default function Header() {
                 Pesanan Saya
               </Link>
               <Link
-                href="/tentang"
+                href={user ? "/profil" : "/masuk"}
                 className={
-                  isActive("/tentang")
+                  isActive("/profil")
                     ? "text-red-900 font-semibold"
                     : "text-gray-700"
                 }>
-                Tentang Kami
+                {user ? "Profil Saya" : "Masuk / Daftar"}
               </Link>
             </nav>
           </div>

@@ -1,39 +1,65 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { User, Lock, Eye, EyeOff, ArrowRight, Headphones } from "lucide-react";
-import { getCustomerProfile, saveCustomerProfile } from "@/data/customer";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function MasukPage() {
+  return (
+    <Suspense fallback={null}>
+      <MasukForm />
+    </Suspense>
+  );
+}
+
+function MasukForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refresh } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     emailOrWa: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [showRegisterHint, setShowRegisterHint] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const existingProfile = getCustomerProfile();
-    saveCustomerProfile({
-      ...existingProfile,
-      email: formData.emailOrWa.includes("@")
-        ? formData.emailOrWa
-        : existingProfile.email,
-      whatsapp: formData.emailOrWa.includes("@")
-        ? existingProfile.whatsapp
-        : formData.emailOrWa,
-    });
-    window.localStorage.setItem("klethisan-authenticated", "true");
-    window.dispatchEvent(new Event("klethisan-auth-change"));
-    router.push("/profil");
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setShowRegisterHint(result.code === "ACCOUNT_NOT_FOUND");
+        throw new Error(result.message);
+      }
+      setShowRegisterHint(false);
+
+      await refresh();
+      router.push(searchParams.get("next") || "/");
+      router.refresh();
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error ? submitError.message : "Gagal masuk.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,6 +103,21 @@ export default function MasukPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{error}</p>
+              {showRegisterHint && (
+                <p className="mt-1.5">
+                  Belum punya akun?{" "}
+                  <Link
+                    href="/daftar"
+                    className="font-semibold underline hover:text-red-900">
+                    Daftar sekarang
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
           {/* Email or WhatsApp */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -135,8 +176,9 @@ export default function MasukPage() {
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isSubmitting}
             className="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-red-900/20 mt-2">
-            Masuk Sekarang
+            {isSubmitting ? "Memproses..." : "Masuk Sekarang"}
             <ArrowRight size={18} />
           </button>
         </form>

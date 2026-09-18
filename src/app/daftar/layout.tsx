@@ -11,9 +11,5 @@ export default function DaftarLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="id">
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }

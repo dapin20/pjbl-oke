@@ -3,12 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Product } from "@/types/product";
+import { useStockMap } from "./useStock";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const stockMap = useStockMap();
+  const stock = stockMap[product.slug];
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -29,6 +32,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
+        {/* Badge stok - pojok kanan atas kartu */}
+        {typeof stock === "number" && (
+          <span
+            className={
+              stock > 10
+                ? "absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 shadow-sm"
+                : stock > 0
+                  ? "absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 shadow-sm"
+                  : "absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 shadow-sm"
+            }>
+            {stock > 0 ? `Stok ${stock}` : "Stok Habis"}
+          </span>
+        )}
       </div>
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-6">{product.name}</h3>

@@ -10,9 +10,5 @@ export default function MasukLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="id">
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }

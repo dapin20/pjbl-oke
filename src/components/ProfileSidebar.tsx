@@ -3,38 +3,52 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  defaultCustomerProfile,
-  getCustomerProfile,
-  saveCustomerProfile,
-  CustomerProfile,
-} from "@/data/customer";
+import { useAuth } from "./AuthProvider";
 
 export default function ProfileSidebar() {
   const router = useRouter();
+  const { user, refresh, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profile, setProfile] = useState<CustomerProfile>(
-    defaultCustomerProfile,
-  );
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
-    setProfile(getCustomerProfile());
-  }, []);
+    setAvatarUrl(user?.imageUrl || "");
+  }, [user]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const updatedProfile = {
-          ...profile,
-          profileImage: reader.result as string,
-        };
-        setProfile(updatedProfile);
-        saveCustomerProfile(updatedProfile);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    setUploadError("");
+    setIsUploading(true);
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/auth/avatar", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      await refresh();
+      router.refresh();
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Gagal mengunggah foto.",
+      );
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+    router.refresh();
   };
 
   return (
@@ -42,12 +56,13 @@ export default function ProfileSidebar() {
       {/* Profile Image */}
       <div className="flex flex-col items-center mb-6">
         <div className="relative mb-4">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-red-50">
+          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-red-50 bg-gray-100">
             <Image
-              src={profile.profileImage}
+              src={avatarUrl || "/user-circle.svg"}
               alt="Profile"
               width={128}
               height={128}
+              unoptimized={avatarUrl.startsWith("/uploads/")}
               className="object-cover"
             />
           </div>
@@ -73,7 +88,7 @@ export default function ProfileSidebar() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleImageChange}
               className="hidden"
             />
@@ -81,10 +96,10 @@ export default function ProfileSidebar() {
         </div>
 
         <h2 className="text-xl font-bold text-gray-900 mb-1">
-          {profile.fullName}
+          {user?.fullName ?? "Pelanggan"}
         </h2>
         <p className="text-gray-600 text-sm mb-3">
-          {profile.email || profile.whatsapp || "Lengkapi profil pelanggan"}
+          {user?.email || user?.whatsapp || "Lengkapi profil pelanggan"}
         </p>
 
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-900 rounded-full text-xs font-medium border border-red-100">
@@ -99,11 +114,18 @@ export default function ProfileSidebar() {
         </span>
       </div>
 
+      {uploadError && (
+        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-700">
+          {uploadError}
+        </p>
+      )}
+
       {/* Change Photo Button */}
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium mb-3">
+        disabled={isUploading}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium mb-3 disabled:opacity-60">
         <svg
           className="w-4 h-4"
           fill="none"
@@ -122,7 +144,7 @@ export default function ProfileSidebar() {
             d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
           />
         </svg>
-        Ubah Foto Profil
+        {isUploading ? "Mengunggah..." : "Ubah Foto Profil"}
       </button>
 
       {/* Divider */}
@@ -131,11 +153,7 @@ export default function ProfileSidebar() {
       {/* Logout Button */}
       <button
         type="button"
-        onClick={() => {
-          window.localStorage.removeItem("klethisan-authenticated");
-          window.dispatchEvent(new Event("klethisan-auth-change"));
-          router.push("/");
-        }}
+        onClick={handleLogout}
         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-900 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100">
         <svg
           className="w-4 h-4"

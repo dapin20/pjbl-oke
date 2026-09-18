@@ -6,13 +6,12 @@ import {
   defaultCustomerProfile,
   getCustomerProfile,
   saveCustomerProfile,
-  CustomerProfile,
 } from "@/data/customer";
+import { useAuth } from "./AuthProvider";
 
 export default function ProfileForm() {
-  const [formData, setFormData] = useState<CustomerProfile>(
-    defaultCustomerProfile,
-  );
+  const { user } = useAuth();
+  const [formData, setFormData] = useState(defaultCustomerProfile);
 
   useEffect(() => {
     setFormData(getCustomerProfile());
@@ -27,7 +26,12 @@ export default function ProfileForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveCustomerProfile(formData);
+    saveCustomerProfile({
+      ...formData,
+      fullName: user?.fullName ?? formData.fullName,
+      email: user?.email ?? formData.email,
+      whatsapp: user?.whatsapp ?? formData.whatsapp,
+    });
     alert("Perubahan berhasil disimpan!");
   };
 
@@ -54,7 +58,9 @@ export default function ProfileForm() {
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           <div>
             <p className="text-xs text-gray-600">ID: #KC-</p>
-            <p className="text-sm font-semibold text-gray-900">88491</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {user?.id ? user.id.slice(0, 5).toUpperCase() : "-----"}
+            </p>
           </div>
         </div>
       </div>
@@ -88,10 +94,9 @@ export default function ProfileForm() {
             </div>
             <input
               type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent transition"
+              value={user?.fullName ?? ""}
+              disabled
+              className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
             />
           </div>
         </div>
@@ -135,10 +140,9 @@ export default function ProfileForm() {
               </div>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent transition"
+                value={user?.email || "-"}
+                disabled
+                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1.5">
@@ -171,10 +175,9 @@ export default function ProfileForm() {
               </div>
               <input
                 type="tel"
-                name="whatsapp"
-                value={formData.whatsapp}
-                onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent transition"
+                value={user?.whatsapp || "-"}
+                disabled
+                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1.5">

@@ -1,8 +1,11 @@
+"use client";
+
 import OrderHistory from "@/components/OrderHistory";
 import OrderStats from "@/components/OrderStats";
 import OrderFilter from "@/components/OrderFilter";
 import OrderTable from "@/components/OrderTable";
 import PickupInfo from "@/components/PickupInfo";
+import { useAuth } from "@/components/AuthProvider";
 
 interface PesananPageProps {
   searchParams: {
@@ -11,6 +14,7 @@ interface PesananPageProps {
 }
 
 export default function PesananPage({ searchParams }: PesananPageProps) {
+  const { user } = useAuth();
   const status = searchParams.status || "all";
 
   return (
@@ -35,7 +39,7 @@ export default function PesananPage({ searchParams }: PesananPageProps) {
               </svg>
             </div>
             <span className="text-sm text-gray-600 font-medium">
-              HALO, AHMAD FAJAR
+              HALO, {user?.fullName?.toUpperCase() ?? "PELANGGAN"}
             </span>
           </div>
 
